@@ -17,7 +17,6 @@
 
 //pins to codec
 #define I2S3_WS_PIN 	GPIO_Pin_4   //port A
-
 #define I2S3_MCLK_PIN 	GPIO_Pin_7   //port C
 #define I2S3_SCLK_PIN 	GPIO_Pin_10  //port C
 #define I2S3_SD_PIN 	GPIO_Pin_12  //port C
@@ -73,15 +72,10 @@
 #define CODEC_MAP_SPEAK_STATUS 0x31
 #define CODEC_MAP_CHARGE_PUMP_FREQ 0x34
 
-
-
 //function prototypes
 void codec_init();
 void codec_ctrl_init();
 void send_codec_ctrl(uint8_t controlBytes[], uint8_t numBytes);
 uint8_t read_codec_register(uint8_t mapByte);
-
-
-
 
 #endif /* __CODEC_H */
