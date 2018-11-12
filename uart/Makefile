@@ -2,7 +2,7 @@
 STM_COMMON = ../STM32F4-Discovery_FW_V1.1.0
 
 # Binaries will be generated with this name (.elf, .bin, .hex, etc)
-PROJ_NAME=myaudio
+PROJ_NAME=myuart
 
 # Put your source files here (or *.c, etc)
 SRCS =  main.c system_stm32f4xx.c 
