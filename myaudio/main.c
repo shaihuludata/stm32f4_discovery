@@ -30,15 +30,30 @@ void init_led(void) {
 }
 
 void adc_init(void) {
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
 
-// enable GPIO for PortC
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;  //ножка на вход
+//	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //ножка пуш-пул
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1; //ножка
+//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
 	ADC_DeInit();
-// uint32_t ADC_Resolution;
-// ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;
+	ADC_CommonStructInit(&ADC_CommonInitStructure);
+//	ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_Disabled;
+	ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent;
+	ADC_CommonInitStructure.ADC_Prescaler = ADC_Prescaler_Div2;
+//	ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
+	ADC_CommonInit(&ADC_CommonInitStructure);
+
+	ADC_StructInit(&ADC_InitStructure);
+	ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
 	ADC_InitStructure.ADC_ScanConvMode = DISABLE;
 	ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;
-	ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConvEdge_None;
+	ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
+	ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T8_TRGO;
 	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
 	ADC_InitStructure.ADC_NbrOfConversion = 1;
 	ADC_Init(ADC1, &ADC_InitStructure);
@@ -49,6 +64,8 @@ void adc_init(void) {
 //	while (ADC_GetResetCalibrationStatus(ADC1)) { };
 //	ADC_StartCalibration(ADC1);
 //	while (ADC_GetCalibrationStatus(ADC1)) { };
+
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_1, 1, ADC_SampleTime_3Cycles);
 
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
 	NVIC_InitStructure.NVIC_IRQChannel = ADC_IRQn;
@@ -63,8 +80,7 @@ void usart_init(void) {
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 
-	GPIO_DeInit(GPIOD);
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF; //альтернативная функция ножки
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF; //ножки на вход
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //ножка пуш-пул
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2; //2 ножка
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -85,8 +101,12 @@ void usart_init(void) {
 }
 
 void usart_send(unsigned char * buf) {
-	while (*buf != 0)
+	while (*buf != 0) {
+		while(USART_GetFlagStatus(USART2, USART_FLAG_TXE) == RESET) {}
 		USART_SendData(USART2, *buf++);
+	}
+//	USART_SendData(USART2, (unsigned char *)"\n");
+//	USART_SendData(USART2, (unsigned char *)"");
 }
 
 int main(void) {
@@ -94,16 +114,17 @@ int main(void) {
 	char usart_buf[10];
 
 	init_led();
+	GPIO_DeInit(GPIOA);
 	adc_init();
 	usart_init();
 
 	while (1) {
-		delay(500);
-		ADC_RegularChannelConfig(ADC1, ADC_Channel_1, 1, ADC_SampleTime_15Cycles);
+		delay(100);
 		ADC_SoftwareStartConv(ADC1);
 		itoa(val, usart_buf, 10);
 		usart_send((unsigned char *)usart_buf);
-		usart_send((unsigned char *)"\r\n");
+		usart_send((unsigned char *)"\n");
+		usart_send((unsigned char *)"\r");
 		LED13_TOGGLE;
 	}
 }

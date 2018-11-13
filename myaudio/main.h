@@ -12,4 +12,5 @@ GPIO_InitTypeDef GPIO_InitStructure;
 NVIC_InitTypeDef NVIC_InitStructure;
 USART_InitTypeDef USART_InitStructure;
 // DMA_InitTypeDef DMA_InitStructure;
+ADC_CommonInitTypeDef ADC_CommonInitStructure;
 ADC_InitTypeDef ADC_InitStructure;
